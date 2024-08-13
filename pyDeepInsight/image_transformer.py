@@ -13,7 +13,7 @@ from scipy.optimize import linear_sum_assignment
 from matplotlib import pyplot as plt
 import inspect
 
-from .utils import asymmetric_greedy_search
+from .utils._ags import asymmetric_greedy_search
 
 class ManifoldLearner(Protocol):
     def fit_transform(self: 'ManifoldLearner',
@@ -49,6 +49,8 @@ class ImageTransformer:
         self._xrot = np.empty(0)
         self._coords = np.empty(0)
 
+    
+
     @staticmethod
     def _parse_pixels(pixels: Union[int, Tuple[int, int]]) -> Tuple[int, int]:
         """Check and correct pixel parameter
@@ -76,7 +78,7 @@ class ImageTransformer:
             function
         """
         if isinstance(feature_extractor, str):
-            fe = feature_extractor.casefold()
+            fe = feature_extractor.casefold() #The casefold() method returns a string where all the characters are lower case.
             if fe == 'tsne'.casefold():
                 fe_func = TSNE(n_components=2, metric='cosine')
             elif fe == 'pca'.casefold():
@@ -239,7 +241,10 @@ class ImageTransformer:
                 px_map[i * px_size[0] + j] = [i, j]
         px_centroid = px_map + 0.5
         return px_centroid
+    
 
+
+    
     def fit(self, X: np.ndarray, y: Optional[ArrayLike] = None,
             plot: bool = False):
         """Train the image transformer from the training set (X)
@@ -255,6 +260,8 @@ class ImageTransformer:
         """
         # perform dimensionality reduction
         x_new = self._fe.fit_transform(X.T)
+        #print("printing result from",self._fer, "and the result is ",x_new)
+        print("printing original X",X.T)
         # get the convex hull for the points
         chvertices = ConvexHull(x_new).vertices
         hull_points = x_new[chvertices]
@@ -267,6 +274,7 @@ class ImageTransformer:
         self._calculate_coords()
         # plot rotation diagram if requested
         if plot is True:
+            print("printing chvertices")
             plt.scatter(x_new[:, 0], x_new[:, 1], s=1,
                         cmap=plt.cm.get_cmap("jet", 10), alpha=0.2)
             plt.fill(x_new[chvertices, 0], x_new[chvertices, 1],
